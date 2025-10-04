@@ -18,11 +18,11 @@ export default function GetToken() {
         // }
 
         if (data.message === "User doesn't have refreshToken") {
-          window.location.href = '/auth';
+          window.location.replace('/auth');
         } else if (data.userID) {
           localStorage.setItem('userId', data.userID.toString());
           console.log('userId сохранён:', data.userID);
-          window.location.href = '/todo';
+          window.location.replace('/todo');
         }
         if (data.message === "User has an accessToken") window.location.href = '/todo'
         if (data.message === "User not found") window.location.href = '/auth'

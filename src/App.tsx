@@ -1,11 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
-
-import Home from './pages/Home'
-import Auth from './pages/Auth'
-import GetToken from './pages/CheckAuth'
-import ToDo from './pages/Todo'
+import Pages from './pages/index'
 
 const darkTheme = createTheme({
   palette: {
@@ -19,10 +15,10 @@ export default function App() {
       <CssBaseline />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/get-token" element={<GetToken />} />
-          <Route path="/todo" element={<ToDo />} />
+          <Route path="/" element={<Pages.Home />} />
+          <Route path="/auth" element={<Pages.Auth />} />
+          <Route path="/get-token" element={<Pages.GetToken />} />
+          <Route path="/todo" element={<Pages.ToDo />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

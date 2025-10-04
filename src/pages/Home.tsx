@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Navbar from '../components/Navbar';
+import Navbar from '../components/navbar';
 
 export default function Home() {
   const [count, setCount] = useState(0)
