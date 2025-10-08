@@ -2,11 +2,15 @@ import { useEffect } from 'react';
 
 export default function GetToken() {
   useEffect(() => {
+    if (import.meta.env.DEV && import.meta.env.VITE_DEV_TOKEN) {
+      document.cookie = `accessToken=${import.meta.env.VITE_DEV_TOKEN}; path=/`;
+    }
     const fetchToken = async () => {
       try {
         const response = await fetch('/api/user/get-token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
         });
 
         const data = await response.json();
