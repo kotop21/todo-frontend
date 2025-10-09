@@ -32,6 +32,7 @@ export default function TableMenu({ tableId, tableName, refreshTables }: TableMe
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -48,6 +49,7 @@ export default function TableMenu({ tableId, tableName, refreshTables }: TableMe
     setSnackbarMessage(message);
     setSnackbarOpen(true);
   };
+
   const handleCloseSnackbar = (
     event?: React.SyntheticEvent | Event,
     reason?: string
@@ -57,13 +59,12 @@ export default function TableMenu({ tableId, tableName, refreshTables }: TableMe
   };
 
   // Удаление таблицы
-  const handleDelete = async () => {
-    handleCloseMenu();
-    if (!confirm(`Вы уверены, что хотите удалить таблицу "${tableName || tableId}"?`)) return;
+  const handleDeleteConfirm = async () => {
     try {
       await deleteTable(tableId);
       showSnackbar('Таблица успешно удалена!');
       refreshTables?.();
+      setDeleteDialogOpen(false);
     } catch (err: any) {
       console.error(err);
       showSnackbar('Ошибка при удалении таблицы');
@@ -107,8 +108,8 @@ export default function TableMenu({ tableId, tableName, refreshTables }: TableMe
   };
 
   const menuOptions: { label: string; icon: JSX.Element; action: () => void }[] = [
-    { label: 'Edit Table', icon: <EditIcon fontSize="small" />, action: handleEditOpen },
-    { label: 'Delete Table', icon: <DeleteIcon fontSize="small" />, action: handleDelete },
+    { label: 'Edit Name', icon: <EditIcon fontSize="small" />, action: handleEditOpen },
+    { label: 'Delete Table', icon: <DeleteIcon fontSize="small" />, action: () => { handleCloseMenu(); setDeleteDialogOpen(true); } },
     { label: 'Add Item', icon: <AddIcon fontSize="small" />, action: handleAddOpen },
   ];
 
@@ -192,6 +193,21 @@ export default function TableMenu({ tableId, tableName, refreshTables }: TableMe
         <DialogActions>
           <Button onClick={() => setAddDialogOpen(false)}>Отмена</Button>
           <Button onClick={handleAddSubmit} disabled={loading}>Добавить</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Диалог подтверждения удаления */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Удаление таблицы</DialogTitle>
+        <DialogContent>
+          Вы уверены, что хотите удалить таблицу "{tableName || tableId}"? Это действие нельзя отменить.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Отмена</Button>
+          <Button color="error" onClick={handleDeleteConfirm}>Удалить</Button>
         </DialogActions>
       </Dialog>
 

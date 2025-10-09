@@ -1,3 +1,5 @@
+// TODO ДОБАВИТЬ ОБРАБОТКУ ОПИСАННИЯ
+
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
@@ -10,9 +12,10 @@ interface Props {
   table: TableType;
   items: ItemType[];
   refreshTables: () => void;
+  onItemClick?: (item: ItemType) => void; // <-- добавили пропс
 }
 
-export default function TableColumn({ table, items, refreshTables }: Props) {
+export default function TableColumn({ table, items, refreshTables, onItemClick }: Props) {
   return (
     <List
       sx={{
@@ -51,6 +54,7 @@ export default function TableColumn({ table, items, refreshTables }: Props) {
           <ListItemButton
             key={item.id}
             sx={{ bgcolor: '#1e1e1e', mb: 0.5, '&:hover': { bgcolor: '#292929' } }}
+            onClick={() => onItemClick?.(item)} // <-- вызываем коллбек
           >
             <ListItemText
               primary={item.itemName}
