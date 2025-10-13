@@ -8,7 +8,11 @@ export interface ItemType {
 }
 
 export async function getItems(userId: string): Promise<ItemType[]> {
-  const res = await fetch(`/api/item/${userId}`);
+
+  const res = await fetch(`/api/item/${userId}`, {
+    method: 'GET',
+    credentials: 'include',
+  });
   const data = await res.json();
 
   if (data.message === "Missing access token") {
