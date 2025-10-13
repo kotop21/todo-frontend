@@ -1,5 +1,5 @@
 import Box from '@mui/material/Box';
-import Navbar from '../components/navbar';
+import Navbar from '../components/Navbar';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
