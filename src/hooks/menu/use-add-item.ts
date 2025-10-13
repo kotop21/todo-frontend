@@ -9,7 +9,7 @@ export function useAddItem() {
 
     setLoading(true);
     try {
-      const res = await addItem(tableId, itemName);
+      await addItem(tableId, itemName);
       return;
     } catch (err: any) {
       throw new Error(err.message || 'Ошибка при добавлении предмета');

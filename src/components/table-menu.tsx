@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -50,10 +50,7 @@ export default function TableMenu({ tableId, tableName, refreshTables }: TableMe
     setSnackbarOpen(true);
   };
 
-  const handleCloseSnackbar = (
-    event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
+  const handleCloseSnackbar = (reason?: string) => {
     if (reason === 'clickaway') return;
     setSnackbarOpen(false);
   };
@@ -107,7 +104,7 @@ export default function TableMenu({ tableId, tableName, refreshTables }: TableMe
     }
   };
 
-  const menuOptions: { label: string; icon: JSX.Element; action: () => void }[] = [
+  const menuOptions: { label: string; icon: React.ReactNode; action: () => void }[] = [
     { label: 'Edit Name', icon: <EditIcon fontSize="small" />, action: handleEditOpen },
     { label: 'Delete Table', icon: <DeleteIcon fontSize="small" />, action: () => { handleCloseMenu(); setDeleteDialogOpen(true); } },
     { label: 'Add Item', icon: <AddIcon fontSize="small" />, action: handleAddOpen },
@@ -115,10 +112,10 @@ export default function TableMenu({ tableId, tableName, refreshTables }: TableMe
 
   const snackbarAction = (
     <>
-      <Button color="inherit" size="small" onClick={handleCloseSnackbar}>
+      <Button color="inherit" size="small" onClick={() => handleCloseSnackbar()}>
         Закрыть
       </Button>
-      <IconButton size="small" color="inherit" onClick={handleCloseSnackbar}>
+      <IconButton size="small" color="inherit" onClick={() => handleCloseSnackbar()}>
         <CloseIcon fontSize="small" />
       </IconButton>
     </>
@@ -215,7 +212,7 @@ export default function TableMenu({ tableId, tableName, refreshTables }: TableMe
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={4000}
-        onClose={handleCloseSnackbar}
+        onClose={() => handleCloseSnackbar()}
         message={snackbarMessage}
         action={snackbarAction}
       />

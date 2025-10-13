@@ -193,7 +193,6 @@ export default function ToDo() {
           itemId={selectedItem.id}
           itemName={selectedItem.itemName}
           itemDescrip={selectedItem.itemDescrip}
-          createdAt={selectedItem.createdAt}
           onClose={() => setSelectedItem(null)}
           refreshItems={fetchTables} // обновляем таблицы и предметы
         />
