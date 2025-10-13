@@ -21,5 +21,6 @@ export async function addTable(userId: number, tableName: string): Promise<Table
   }
 
   console.log(`Элемент ${tableName} успешно добавлен`);
-}
 
+  return data as TableType; // <-- добавлено возвращение данных
+}

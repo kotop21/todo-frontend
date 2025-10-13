@@ -17,7 +17,6 @@ export interface ItemMenuProps {
   itemId: number;
   itemName: string;
   itemDescrip?: string;
-  createdAt: string;
   onClose: () => void;
   refreshItems?: () => void;
 }
@@ -26,7 +25,6 @@ export default function ItemMenu({
   itemId,
   itemName,
   itemDescrip,
-  createdAt,
   onClose,
   refreshItems,
 }: ItemMenuProps) {

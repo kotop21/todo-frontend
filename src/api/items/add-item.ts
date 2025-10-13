@@ -21,4 +21,6 @@ export async function addItem(tableId: number, itemName: string): Promise<ItemTy
   }
 
   console.log(`Элемент ${itemName} успешно добавлен`);
+
+  return data as ItemType;
 }

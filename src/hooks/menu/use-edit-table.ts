@@ -9,7 +9,7 @@ export function useEditTable() {
 
     setLoading(true);
     try {
-      const res = await editTable(tableId, newName);
+      await editTable(tableId, newName);
       return;
     } catch (err: any) {
       throw new Error(err.message || 'Ошибка при редактировании таблицы');
