@@ -1,15 +1,19 @@
 import { useState } from 'react';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Typography,
+  IconButton,
+  Snackbar,
+  Alert,
+  Stack,
+} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
+// import { useTheme } from '@mui/material/styles';
 import { useEditItem } from '../hooks/menu/use-edit-item';
 import { deleteItem } from '../api/items/delete-item';
 
@@ -36,6 +40,8 @@ export default function ItemMenu({
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const { edit, loading } = useEditItem();
 
+  // const theme = useTheme();
+  // const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const formattedDescrip = descripValue.split('\\n').join('\n');
 
   const handleEditOpen = () => {
@@ -52,7 +58,7 @@ export default function ItemMenu({
       onClose();
     } catch (err: any) {
       console.error(err);
-      setSnackbarMessage(err.message || 'Ошибка при удалении предмета');
+      setSnackbarMessage(err.message || 'Error deleting item');
       setSnackbarOpen(true);
     }
   };
@@ -65,97 +71,133 @@ export default function ItemMenu({
       onClose();
     } catch (err: any) {
       console.error(err);
-      setSnackbarMessage(err.message || 'Ошибка при редактировании предмета');
+      setSnackbarMessage(err.message || 'Error saving item changes');
       setSnackbarOpen(true);
     }
   };
 
   return (
     <>
-      {/* Основной диалог просмотра */}
+      {/* Main View Dialog */}
       <Dialog open onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>
+        <DialogTitle sx={{ pr: 6 }}>
           {itemName}
           <IconButton
             aria-label="close"
             onClick={onClose}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
+            sx={{ position: 'absolute', right: 12, top: 12 }}
           >
             <CloseIcon />
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
-          {itemDescrip && (
+          {itemDescrip ? (
             <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mt: 2 }}>
               {formattedDescrip}
+            </Typography>
+          ) : (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+              No description provided.
             </Typography>
           )}
         </DialogContent>
         <DialogActions>
-          <Button color="error" onClick={() => setDeleteDialogOpen(true)}>Удалить</Button>
-          <Button onClick={onClose}>Закрыть</Button>
-          <Button onClick={handleEditOpen}>Редактировать</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Диалог редактирования */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Редактировать предмет</DialogTitle>
-        <DialogContent dividers>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Название предмета"
-            type="text"
-            fullWidth
-            value={nameValue}
-            onChange={(e) => setNameValue(e.target.value)}
-          />
-          <TextField
-            margin="dense"
-            label="Описание"
-            type="text"
-            fullWidth
-            multiline
-            minRows={3}
-            value={descripValue.split('\\n').join('\n')}
-            onChange={(e) => setDescripValue(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button color="error" onClick={() => setEditDialogOpen(false)}>Отмена</Button>
-          <Button onClick={handleEditSubmit} disabled={loading}>
-            Сохранить
+          <Button color="error" onClick={() => setDeleteDialogOpen(true)}>
+            Delete
+          </Button>
+          <Button onClick={onClose}>Close</Button>
+          <Button variant="contained" onClick={handleEditOpen}>
+            Edit
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Диалог подтверждения удаления */}
+      {/* Edit Dialog */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Edit Item</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2}>
+            <TextField
+              autoFocus
+              label="Item Name"
+              type="text"
+              fullWidth
+              value={nameValue}
+              onChange={(e) => setNameValue(e.target.value)}
+              variant="outlined"
+            />
+            <TextField
+              label="Description"
+              type="text"
+              fullWidth
+              multiline
+              minRows={4}
+              maxRows={12}
+              value={descripValue.split('\\n').join('\n')}
+              onChange={(e) => setDescripValue(e.target.value)}
+              helperText="You can use line breaks for better formatting."
+              variant="outlined"
+              sx={{
+                '& .MuiInputBase-root': {
+                  fontFamily: 'monospace',
+                },
+              }}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button color="inherit" onClick={() => setEditDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleEditSubmit}
+            disabled={loading || !nameValue.trim()}
+            variant="contained"
+          >
+            {loading ? 'Saving...' : 'Save'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation */}
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         maxWidth="xs"
+        fullWidth
       >
-        <DialogTitle>Подтвердите удаление</DialogTitle>
+        <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent dividers>
           <Typography>
-            Вы уверены, что хотите удалить "{itemName}"? Это действие нельзя отменить.
+            Are you sure you want to delete "{itemName}"? This action cannot be undone.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Отмена</Button>
-          <Button color="error" onClick={handleDeleteConfirm}>Удалить</Button>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button color="error" onClick={handleDeleteConfirm}>
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar для ошибок */}
+      {/* Snackbar for errors */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={() => setSnackbarOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert onClose={() => setSnackbarOpen(false)} severity="error" sx={{ width: '100%' }}>
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity="error"
+          sx={{ width: '100%' }}
+          variant="filled"
+        >
           {snackbarMessage}
         </Alert>
       </Snackbar>

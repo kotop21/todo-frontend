@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
-import IconButton from '@mui/material/IconButton';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
+import {
+  IconButton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  TextField,
+  DialogActions,
+  Button,
+  Snackbar,
+  Alert,
+  useMediaQuery,
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import TextField from '@mui/material/TextField';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
-import Snackbar from '@mui/material/Snackbar';
-import CloseIcon from '@mui/icons-material/Close';
 import { deleteTable } from '../api/tables/delete-tables';
 import { useEditTable } from '../hooks/menu/use-edit-table';
 import { useAddItem } from '../hooks/menu/use-add-item';
@@ -34,41 +38,37 @@ export default function TableMenu({ tableId, tableName, refreshTables }: TableMe
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
   const { edit, loading: editLoading } = useEditTable();
   const { add, loading: addLoading } = useAddItem();
   const loading = editLoading || addLoading;
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const open = Boolean(anchorEl);
   const handleClickMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
   const handleCloseMenu = () => setAnchorEl(null);
 
-  const showSnackbar = (message: string) => {
-    setSnackbarMessage(message);
-    setSnackbarOpen(true);
+  const showSnackbar = (message: string, severity: 'success' | 'error' = 'success') => {
+    setSnackbar({ open: true, message, severity });
   };
 
-  const handleCloseSnackbar = (reason?: string) => {
-    if (reason === 'clickaway') return;
-    setSnackbarOpen(false);
-  };
+  const handleCloseSnackbar = () => setSnackbar((prev) => ({ ...prev, open: false }));
 
-  // Удаление таблицы
   const handleDeleteConfirm = async () => {
     try {
       await deleteTable(tableId);
-      showSnackbar('Таблица успешно удалена!');
+      showSnackbar('Table deleted successfully!');
       refreshTables?.();
       setDeleteDialogOpen(false);
     } catch (err: any) {
       console.error(err);
-      showSnackbar('Ошибка при удалении таблицы');
+      showSnackbar(err.message || 'Error deleting table', 'error');
     }
   };
 
-  // Редактирование таблицы
   const handleEditOpen = () => {
     handleCloseMenu();
     setInputValue(tableName || '');
@@ -76,17 +76,20 @@ export default function TableMenu({ tableId, tableName, refreshTables }: TableMe
   };
 
   const handleEditSubmit = async () => {
+    if (!inputValue.trim()) {
+      showSnackbar('Table name cannot be empty', 'error');
+      return;
+    }
     try {
       await edit(tableId, inputValue);
-      showSnackbar('Название таблицы успешно изменено!');
+      showSnackbar('Table name updated successfully!');
       refreshTables?.();
       setEditDialogOpen(false);
     } catch (err: any) {
-      showSnackbar(err.message || 'Ошибка при редактировании таблицы');
+      showSnackbar(err.message || 'Error updating table name', 'error');
     }
   };
 
-  // Добавление предмета
   const handleAddOpen = () => {
     handleCloseMenu();
     setInputValue('');
@@ -94,37 +97,30 @@ export default function TableMenu({ tableId, tableName, refreshTables }: TableMe
   };
 
   const handleAddSubmit = async () => {
+    if (!inputValue.trim()) {
+      showSnackbar('Item name cannot be empty', 'error');
+      return;
+    }
     try {
       await add(tableId, inputValue);
-      showSnackbar('Предмет успешно добавлен!');
+      showSnackbar('Item added successfully!');
       refreshTables?.();
       setAddDialogOpen(false);
     } catch (err: any) {
-      showSnackbar(err.message || 'Ошибка при добавлении предмета');
+      showSnackbar(err.message || 'Error adding item', 'error');
     }
   };
 
   const menuOptions: { label: string; icon: React.ReactNode; action: () => void }[] = [
-    { label: 'Edit Name', icon: <EditIcon fontSize="small" />, action: handleEditOpen },
+    { label: 'Edit Table Name', icon: <EditIcon fontSize="small" />, action: handleEditOpen },
     { label: 'Delete Table', icon: <DeleteIcon fontSize="small" />, action: () => { handleCloseMenu(); setDeleteDialogOpen(true); } },
     { label: 'Add Item', icon: <AddIcon fontSize="small" />, action: handleAddOpen },
   ];
 
-  const snackbarAction = (
-    <>
-      <Button color="inherit" size="small" onClick={() => handleCloseSnackbar()}>
-        Закрыть
-      </Button>
-      <IconButton size="small" color="inherit" onClick={() => handleCloseSnackbar()}>
-        <CloseIcon fontSize="small" />
-      </IconButton>
-    </>
-  );
-
   return (
     <>
       <IconButton
-        aria-label="more"
+        aria-label="table menu"
         id={`menu-button-${tableId}`}
         aria-controls={open ? `menu-${tableId}` : undefined}
         aria-haspopup="true"
@@ -140,8 +136,12 @@ export default function TableMenu({ tableId, tableName, refreshTables }: TableMe
         anchorEl={anchorEl}
         open={open}
         onClose={handleCloseMenu}
-        PaperProps={{ style: { maxHeight: ITEM_HEIGHT * 4.5, width: '200px' } }}
-        MenuListProps={{ 'aria-labelledby': `menu-button-${tableId}` }}
+        PaperProps={{
+          style: { maxHeight: ITEM_HEIGHT * 4.5, width: '210px' },
+        }}
+        MenuListProps={{
+          'aria-labelledby': `menu-button-${tableId}`,
+        }}
       >
         {menuOptions.map((option) => (
           <MenuItem key={option.label} onClick={option.action}>
@@ -151,71 +151,74 @@ export default function TableMenu({ tableId, tableName, refreshTables }: TableMe
         ))}
       </Menu>
 
-      {/* Диалог редактирования таблицы */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
-        <DialogTitle>Редактировать название таблицы</DialogTitle>
+      {/* Edit Table Dialog */}
+      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Edit Table Name</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="Название таблицы"
-            type="text"
+            label="New Table Name"
             fullWidth
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleEditSubmit(); }}
+            onKeyDown={(e) => e.key === 'Enter' && handleEditSubmit()}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Отмена</Button>
-          <Button onClick={handleEditSubmit} disabled={loading}>Сохранить</Button>
+          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleEditSubmit} disabled={loading}>Save</Button>
         </DialogActions>
       </Dialog>
 
-      {/* Диалог добавления предмета */}
-      <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)}>
-        <DialogTitle>Добавить предмет</DialogTitle>
+      {/* Add Item Dialog */}
+      <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Add Item</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="Название предмета"
-            type="text"
+            label="Item Name"
             fullWidth
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleAddSubmit(); }}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddSubmit()}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAddDialogOpen(false)}>Отмена</Button>
-          <Button onClick={handleAddSubmit} disabled={loading}>Добавить</Button>
+          <Button onClick={() => setAddDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleAddSubmit} disabled={loading}>Add</Button>
         </DialogActions>
       </Dialog>
 
-      {/* Диалог подтверждения удаления */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-      >
-        <DialogTitle>Удаление таблицы</DialogTitle>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
-          Вы уверены, что хотите удалить таблицу "{tableName || tableId}"? Это действие нельзя отменить.
+          Are you sure you want to delete the table "{tableName || tableId}"? This action cannot be undone.
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Отмена</Button>
-          <Button color="error" onClick={handleDeleteConfirm}>Удалить</Button>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button color="error" onClick={handleDeleteConfirm}>Delete</Button>
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
+      {/* Snackbar with Alert */}
       <Snackbar
-        open={snackbarOpen}
+        open={snackbar.open}
         autoHideDuration={4000}
-        onClose={() => handleCloseSnackbar()}
-        message={snackbarMessage}
-        action={snackbarAction}
-      />
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: isMobile ? 'center' : 'right' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 }
