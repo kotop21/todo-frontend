@@ -1,16 +1,23 @@
 import { useState, useEffect } from 'react';
-import Box from '@mui/material/Box';
-import Backdrop from '@mui/material/Backdrop';
-import CircularProgress from '@mui/material/CircularProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import TextField from '@mui/material/TextField';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
+import {
+  Box,
+  Backdrop,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  TextField,
+  DialogActions,
+  Button,
+  Snackbar,
+  Alert,
+  Fab,
+  Typography,
+  Link,
+  useMediaQuery,
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import Snackbar from '@mui/material/Snackbar';
+import { useTheme } from '@mui/material/styles';
 import { getTables } from '../api/tables/get-tables';
 import { getItems } from '../api/items/get-items';
 import { addTable } from '../api/tables/add-table';
@@ -25,17 +32,14 @@ export default function ToDo() {
   const [items, setItems] = useState<ItemType[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-
-  // Для диалога добавления таблицы
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newTableName, setNewTableName] = useState('');
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-
-  // Для ItemMenu
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const [selectedItem, setSelectedItem] = useState<ItemType | null>(null);
 
   const userId = localStorage.getItem('userId');
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const {
     scrollRef,
@@ -72,38 +76,48 @@ export default function ToDo() {
     fetchTables();
   }, [userId]);
 
-  // Snackbar
-  const showSnackbar = (message: string) => {
-    setSnackbarMessage(message);
-    setSnackbarOpen(true);
-  };
-  const handleCloseSnackbar = (_?: any, reason?: string) => {
-    if (reason === 'clickaway') return;
-    setSnackbarOpen(false);
+  const showSnackbar = (message: string, severity: 'success' | 'error' = 'success') => {
+    setSnackbar({ open: true, message, severity });
   };
 
-  // Добавление таблицы
-  const handleAddTableOpen = () => {
-    setNewTableName('');
-    setAddDialogOpen(true);
-  };
+  const handleCloseSnackbar = () => setSnackbar((prev) => ({ ...prev, open: false }));
+
   const handleAddTableSubmit = async () => {
     if (!newTableName.trim()) {
-      showSnackbar('Название таблицы не может быть пустым');
+      showSnackbar('Table name cannot be empty', 'error');
       return;
     }
     if (!userId) return;
 
     try {
       await addTable(Number(userId), newTableName);
-      showSnackbar(`Таблица "${newTableName}" успешно добавлена!`);
+      showSnackbar(`Table "${newTableName}" added successfully!`);
       fetchTables();
       setAddDialogOpen(false);
     } catch (err: any) {
       console.error(err);
-      showSnackbar(err.message || 'Ошибка при добавлении таблицы');
+      showSnackbar(err.message || 'Error adding table', 'error');
     }
   };
+
+  useEffect(() => {
+    const handleMouseDownPage = (e: MouseEvent) => handleMouseDown(e as any);
+    const handleMouseMovePage = (e: MouseEvent) => handleMouseMove(e as any);
+    const handleMouseUpPage = () => handleMouseUp();
+    const handleMouseLeavePage = () => handleMouseLeave();
+
+    window.addEventListener('mousedown', handleMouseDownPage);
+    window.addEventListener('mousemove', handleMouseMovePage);
+    window.addEventListener('mouseup', handleMouseUpPage);
+    window.addEventListener('mouseleave', handleMouseLeavePage);
+
+    return () => {
+      window.removeEventListener('mousedown', handleMouseDownPage);
+      window.removeEventListener('mousemove', handleMouseMovePage);
+      window.removeEventListener('mouseup', handleMouseUpPage);
+      window.removeEventListener('mouseleave', handleMouseLeavePage);
+    };
+  }, [handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave]);
 
   return (
     <Box
@@ -113,103 +127,140 @@ export default function ToDo() {
         flexDirection: 'row',
         overflowX: 'auto',
         gap: 2,
-        p: 2,
+        p: isMobile ? 1 : 3,
         cursor: isDragging ? 'grabbing' : 'grab',
         alignItems: 'flex-start',
+        height: '100vh',
+        bgcolor: theme.palette.background.default,
         '&::-webkit-scrollbar': { display: 'none' },
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
-        position: 'relative',
+        flexWrap: 'nowrap',
       }}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
     >
-      {/* Спиннер загрузки */}
-      <Backdrop sx={{ color: '#fff', zIndex: 1201 }} open={loading}>
+      <Backdrop sx={{ color: '#fff', zIndex: 1300 }} open={loading}>
         <CircularProgress color="inherit" />
       </Backdrop>
 
-      {/* Ошибка */}
-      {error && <p style={{ color: 'red', position: 'absolute', top: 0 }}>{error}</p>}
+      {error && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 16,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            bgcolor: 'error.main',
+            color: 'white',
+            px: 2,
+            py: 1,
+            borderRadius: 1,
+            boxShadow: 3,
+            zIndex: 1500,
+          }}
+        >
+          {error}
+        </Box>
+      )}
 
-      {/* Колонки */}
-      {!loading &&
-        tables.length > 0 &&
+      {!loading && tables.length > 0 && (
         tables.map((table) => (
           <TableColumn
             key={table.id}
             table={table}
             items={items}
             refreshTables={fetchTables}
-            onItemClick={(item: ItemType) => setSelectedItem(item)} // <-- вызываем ItemMenu
+            onItemClick={(item: ItemType) => setSelectedItem(item)}
           />
-        ))}
+        ))
+      )}
 
-      {/* Плавающий плюсик */}
-      <IconButton
+      <Fab
         color="primary"
-        onClick={handleAddTableOpen}
+        aria-label="add"
+        onClick={() => setAddDialogOpen(true)}
         sx={{
           position: 'fixed',
-          bottom: 30,
-          right: 30,
-          bgcolor: 'primary.main',
-          color: 'white',
-          width: 60,
-          height: 60,
-          '&:hover': { bgcolor: 'primary.dark' },
-          boxShadow: 3,
+          bottom: isMobile ? 16 : 30,
+          right: isMobile ? 16 : 40,
+          width: 64,
+          height: 64,
+          boxShadow: 4,
         }}
       >
-        <AddIcon sx={{ fontSize: '2.5rem' }} />
-      </IconButton>
+        <AddIcon sx={{ fontSize: '2rem' }} />
+      </Fab>
 
-      {/* Диалог добавления таблицы */}
-      <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)}>
-        <DialogTitle>Добавить таблицу</DialogTitle>
+      <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>New Table</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="Название таблицы"
-            type="text"
+            label="Table name"
             fullWidth
             value={newTableName}
             onChange={(e) => setNewTableName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleAddTableSubmit(); }}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddTableSubmit()}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAddDialogOpen(false)}>Отмена</Button>
-          <Button onClick={handleAddTableSubmit}>Добавить</Button>
+          <Button onClick={() => setAddDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleAddTableSubmit}>Add</Button>
         </DialogActions>
       </Dialog>
 
-      {/* ItemMenu диалог */}
       {selectedItem && (
         <ItemMenu
           itemId={selectedItem.id}
           itemName={selectedItem.itemName}
           itemDescrip={selectedItem.itemDescrip}
           onClose={() => setSelectedItem(null)}
-          refreshItems={fetchTables} // обновляем таблицы и предметы
+          refreshItems={fetchTables}
         />
       )}
 
-      {/* Snackbar */}
       <Snackbar
-        open={snackbarOpen}
+        open={snackbar.open}
         autoHideDuration={4000}
         onClose={handleCloseSnackbar}
-        message={snackbarMessage}
-        action={
-          <Button color="inherit" size="small" onClick={handleCloseSnackbar}>
-            Закрыть
-          </Button>
-        }
-      />
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          onClose={handleCloseSnackbar}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+      {!isMobile && (
+        <Box
+          component="footer"
+          sx={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            width: '100%',
+            textAlign: 'center',
+            py: 2,
+            bgcolor: 'rgba(18,18,18,0.8)',
+            backdropFilter: 'blur(10px)',
+            color: 'text.secondary',
+            zIndex: 1000,
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            Made with ❤️ by <strong>kotop21</strong> |{' '}
+            <Link href="https://github.com/kotop21/todo-frontend" target="_blank" rel="noopener">
+              Frontend
+            </Link>{' '}
+            |{' '}
+            <Link href="https://github.com/kotop21/todo-backend" target="_blank" rel="noopener">
+              Backend
+            </Link>
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 }
