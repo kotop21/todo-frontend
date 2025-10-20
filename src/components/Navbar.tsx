@@ -16,7 +16,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 
 export default function Navbar() {
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
@@ -61,7 +60,6 @@ export default function Navbar() {
   };
 
   return (
-
     <AppBar
       position="fixed"
       elevation={0}
@@ -156,14 +154,12 @@ export default function Navbar() {
           )}
         </Box>
 
-        {/* Мобильное меню */}
         {isMobile && (
-          <IconButton sx={{ color: '#fff' }} onClick={() => setDrawerOpen(true)}>
+          <IconButton sx={{ color: '#fff' }}>
             <MenuIcon />
           </IconButton>
         )}
       </Toolbar>
     </AppBar>
-
   );
 }
