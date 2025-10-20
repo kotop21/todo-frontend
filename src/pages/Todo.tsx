@@ -26,6 +26,7 @@ import type { TableType } from '../api/tables/get-tables';
 import { useDragScroll } from '../hooks/use-drag-scroll';
 import TableColumn from '../components/table-column';
 import ItemMenu from '../components/item-menu';
+import Navbar from '../components/Navbar';
 
 export default function ToDo() {
   const [tables, setTables] = useState<TableType[]>([]);
@@ -128,6 +129,7 @@ export default function ToDo() {
         overflowX: 'auto',
         gap: 2,
         p: isMobile ? 1 : 3,
+        pt: isMobile ? '56px' : '80px',
         cursor: isDragging ? 'grabbing' : 'grab',
         alignItems: 'flex-start',
         height: '100vh',
@@ -136,6 +138,7 @@ export default function ToDo() {
         flexWrap: 'nowrap',
       }}
     >
+      <Navbar />
       <Backdrop sx={{ color: '#fff', zIndex: 1300 }} open={loading}>
         <CircularProgress color="inherit" />
       </Backdrop>

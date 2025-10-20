@@ -1,32 +1,65 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
   Typography,
   Button,
   IconButton,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
+  Menu,
+  MenuItem,
   Box,
   useMediaQuery,
 } from '@mui/material';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import MenuIcon from '@mui/icons-material/Menu';
-import GitHubIcon from '@mui/icons-material/GitHub';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 
 export default function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
 
-  const navLinks = [
-    { label: 'Home', to: '/' },
-    { label: 'Auth', to: '/get-token' },
-  ];
+  // Загружаем email при монтировании
+  useEffect(() => {
+    const storedEmail = localStorage.getItem('userEmail');
+    if (storedEmail) {
+      setUserEmail(storedEmail);
+    }
+  }, []);
+
+  const handleLogin = () => {
+    navigate('/get-token'); // Переход на страницу логина
+  };
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = async () => {
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userId');
+
+    try {
+      await fetch('/api/user/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (err) {
+      console.error('Failed to logout:', err);
+    }
+
+    setUserEmail(null);
+    window.location.reload();
+  };
 
   return (
     <AppBar
@@ -39,6 +72,7 @@ export default function Navbar() {
       }}
     >
       <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        {/* ЛОГО */}
         <Typography
           variant="h6"
           component={Link}
@@ -53,72 +87,67 @@ export default function Navbar() {
           Todo List
         </Typography>
 
-        {!isMobile && (
-          <Box sx={{ display: 'flex', gap: 3 }}>
-            {navLinks.map((link) => (
-              <Button
-                key={link.to}
-                component={Link}
-                to={link.to}
-                sx={{
-                  color: '#fff',
-                  fontSize: '1rem',
-                  fontWeight: 500,
-                  '&:hover': { color: theme.palette.primary.main },
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {!userEmail ? (
+            // Если пользователь не авторизован
+            <Button
+              variant="outlined"
+              sx={{
+                color: '#fff',
+                borderColor: '#fff',
+                textTransform: 'none',
+                '&:hover': {
+                  borderColor: theme.palette.primary.main,
+                  color: theme.palette.primary.main,
+                },
+              }}
+              onClick={handleLogin}
+            >
+              Login
+            </Button>
+          ) : (
+            // Если авторизован — иконка пользователя
+            <>
+              <IconButton sx={{ color: '#fff' }} onClick={handleMenuOpen}>
+                <AccountCircleIcon />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                PaperProps={{
+                  sx: {
+                    backgroundColor: '#121212',
+                    color: '#fff',
+                    mt: 1,
+                    minWidth: 180,
+                  },
                 }}
               >
-                {link.label}
-              </Button>
-            ))}
-          </Box>
-        )}
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton
-            sx={{ color: '#fff' }}
-            onClick={() => window.open('https://github.com/kotop21/', '_blank')}
-          >
-            <GitHubIcon />
-          </IconButton>
-
-          {isMobile && (
-            <IconButton
-              sx={{ color: '#fff' }}
-              onClick={() => setDrawerOpen(true)}
-            >
-              <MenuIcon />
-            </IconButton>
+                <MenuItem disabled>{userEmail}</MenuItem>
+                <MenuItem
+                  onClick={handleLogout}
+                  sx={{
+                    color: 'red',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,0,0,0.1)',
+                    },
+                  }}
+                >
+                  Logout
+                </MenuItem>
+              </Menu>
+            </>
           )}
         </Box>
-      </Toolbar>
 
-      {/* МОБИЛЬНОЕ МЕНЮ */}
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        PaperProps={{
-          sx: {
-            width: 240,
-            backgroundColor: '#121212',
-            color: '#fff',
-          },
-        }}
-      >
-        <List>
-          {navLinks.map((link) => (
-            <ListItem key={link.to} disablePadding>
-              <ListItemButton
-                component={Link}
-                to={link.to}
-                onClick={() => setDrawerOpen(false)}
-              >
-                <ListItemText primary={link.label} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-      </Drawer>
+        {/* Мобильное меню — если вдруг нужно в будущем */}
+        {isMobile && (
+          <IconButton sx={{ color: '#fff' }} onClick={() => setDrawerOpen(true)}>
+            <MenuIcon />
+          </IconButton>
+        )}
+      </Toolbar>
     </AppBar>
   );
 }
