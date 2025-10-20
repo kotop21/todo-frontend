@@ -24,7 +24,6 @@ export default function Navbar() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
 
-  // Загружаем email при монтировании
   useEffect(() => {
     const storedEmail = localStorage.getItem('userEmail');
     if (storedEmail) {
@@ -33,7 +32,7 @@ export default function Navbar() {
   }, []);
 
   const handleLogin = () => {
-    navigate('/get-token'); // Переход на страницу логина
+    navigate('/get-token');
   };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -62,6 +61,7 @@ export default function Navbar() {
   };
 
   return (
+
     <AppBar
       position="fixed"
       elevation={0}
@@ -72,7 +72,6 @@ export default function Navbar() {
       }}
     >
       <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        {/* ЛОГО */}
         <Typography
           variant="h6"
           component={Link}
@@ -89,28 +88,49 @@ export default function Navbar() {
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {!userEmail ? (
-            // Если пользователь не авторизован
-            <Button
-              variant="outlined"
-              sx={{
-                color: '#fff',
-                borderColor: '#fff',
-                textTransform: 'none',
-                '&:hover': {
-                  borderColor: theme.palette.primary.main,
-                  color: theme.palette.primary.main,
-                },
-              }}
-              onClick={handleLogin}
-            >
-              Login
-            </Button>
+            <>
+              <Button
+                variant="outlined"
+                sx={{
+                  color: '#fff',
+                  borderColor: '#fff',
+                  textTransform: 'none',
+                  '&:hover': {
+                    borderColor: theme.palette.primary.main,
+                    color: theme.palette.primary.main,
+                  },
+                }}
+                onClick={handleLogin}
+              >
+                Login
+              </Button>
+
+              <Button
+                component={Link}
+                to="/todo"
+                variant="contained"
+                color="primary"
+                sx={{ textTransform: 'none' }}
+              >
+                Go to Todo
+              </Button>
+            </>
           ) : (
-            // Если авторизован — иконка пользователя
             <>
               <IconButton sx={{ color: '#fff' }} onClick={handleMenuOpen}>
                 <AccountCircleIcon />
               </IconButton>
+
+              <Button
+                component={Link}
+                to="/todo"
+                variant="contained"
+                color="primary"
+                sx={{ textTransform: 'none' }}
+              >
+                Go to Todo
+              </Button>
+
               <Menu
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
@@ -127,12 +147,7 @@ export default function Navbar() {
                 <MenuItem disabled>{userEmail}</MenuItem>
                 <MenuItem
                   onClick={handleLogout}
-                  sx={{
-                    color: 'red',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255,0,0,0.1)',
-                    },
-                  }}
+                  sx={{ color: 'red', '&:hover': { backgroundColor: 'rgba(255,0,0,0.1)' } }}
                 >
                   Logout
                 </MenuItem>
@@ -141,7 +156,7 @@ export default function Navbar() {
           )}
         </Box>
 
-        {/* Мобильное меню — если вдруг нужно в будущем */}
+        {/* Мобильное меню */}
         {isMobile && (
           <IconButton sx={{ color: '#fff' }} onClick={() => setDrawerOpen(true)}>
             <MenuIcon />
@@ -149,5 +164,6 @@ export default function Navbar() {
         )}
       </Toolbar>
     </AppBar>
+
   );
 }
