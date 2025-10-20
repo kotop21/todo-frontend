@@ -76,9 +76,11 @@ export default function Auth() {
           localStorage.setItem('refreshToken', data.refreshToken);
         }
 
-        // ⚡ Сохраняем почту только при успешной авторизации
-        if (response.url.includes('/login')) {
-          localStorage.setItem('userEmail', email);
+        if (response.ok) {
+          localStorage.setItem('userEmail', email); // сохраняем всегда при успешной auth
+          if (data.userID) localStorage.setItem('userId', data.userID.toString());
+          if (data.accessToken) localStorage.setItem('accessToken', data.accessToken);
+          if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
         }
 
         // Переход на /todo
