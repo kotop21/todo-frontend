@@ -8,7 +8,6 @@ import {
   Menu,
   MenuItem,
   Box,
-  useMediaQuery,
 } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -19,7 +18,6 @@ export default function Navbar() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -60,14 +58,7 @@ export default function Navbar() {
         borderBottom: '1px solid rgba(255,255,255,0.1)',
       }}
     >
-      <Toolbar
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          flexWrap: isMobile ? 'wrap' : 'nowrap',
-          gap: isMobile ? 1 : 0,
-        }}
-      >
+      <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography
           variant="h6"
           component={Link}
@@ -77,7 +68,7 @@ export default function Navbar() {
           Todo List
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: isMobile ? 'flex-end' : 'flex-start', width: isMobile ? '100%' : 'auto' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {!userEmail ? (
             <>
               <Button
