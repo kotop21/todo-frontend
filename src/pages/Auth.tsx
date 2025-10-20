@@ -30,6 +30,7 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      // Сначала пробуем зарегистрировать
       let response = await fetch('/api/user/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -38,8 +39,8 @@ export default function Auth() {
 
       let data: any = await response.json().catch(() => ({}));
 
+      // Если пользователь уже существует — логиним
       if (response.status === 409) {
-        // If user already exists, attempt login
         response = await fetch('/api/user/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -55,6 +56,7 @@ export default function Auth() {
           severity: 'error',
         });
       } else {
+        // ✅ Успешная аутентификация
         setSnackbar({
           open: true,
           message: 'Successfully authenticated!',
@@ -62,10 +64,24 @@ export default function Auth() {
         });
         setEmail('');
         setPassword('');
+
+        // Сохраняем данные в localStorage
         if (data.userID) {
           localStorage.setItem('userId', data.userID.toString());
-          console.log('userId saved:', data.userID);
         }
+        if (data.accessToken) {
+          localStorage.setItem('accessToken', data.accessToken);
+        }
+        if (data.refreshToken) {
+          localStorage.setItem('refreshToken', data.refreshToken);
+        }
+
+        // ⚡ Сохраняем почту только при успешной авторизации
+        if (response.url.includes('/login')) {
+          localStorage.setItem('userEmail', email);
+        }
+
+        // Переход на /todo
         setTimeout(() => navigate('/todo'), 800);
       }
     } catch (err: unknown) {
