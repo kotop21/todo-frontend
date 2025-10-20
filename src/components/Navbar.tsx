@@ -67,29 +67,20 @@ export default function Navbar() {
         >
           Todo List
         </Typography>
-
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {!userEmail ? (
-            <>
-              <Button
-                variant="outlined"
-                sx={{
-                  color: '#fff',
-                  borderColor: '#fff',
-                  textTransform: 'none',
-                  '&:hover': { borderColor: theme.palette.primary.main, color: theme.palette.primary.main },
-                }}
-                onClick={handleLogin}
-              >
-                Login
-              </Button>
-
-              {showTodoButton && (
-                <Button component={Link} to="/todo" variant="contained" color="primary" sx={{ textTransform: 'none' }}>
-                  Go to Todo
-                </Button>
-              )}
-            </>
+            <Button
+              variant="outlined"
+              sx={{
+                color: '#fff',
+                borderColor: '#fff',
+                textTransform: 'none',
+                '&:hover': { borderColor: theme.palette.primary.main, color: theme.palette.primary.main },
+              }}
+              onClick={handleLogin}
+            >
+              Login
+            </Button>
           ) : (
             <>
               <IconButton sx={{ color: '#fff' }} onClick={handleMenuOpen}>
@@ -116,6 +107,7 @@ export default function Navbar() {
             </>
           )}
         </Box>
+
       </Toolbar>
     </AppBar>
   );
